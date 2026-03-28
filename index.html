@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Baseball League Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav-link {
+            color: #94a3b8;
+            transition: all 0.2s;
+        }
+        .nav-link.active {
+            background-color: #3b82f6 !important;
+            color: white !important;
+        }
+        
+        /* Sortable Headers */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        .sortable:hover {
+            color: #3b82f6;
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        /* Sticky Column Support */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+        
+        /* Ensure sticky header has higher z-index */
+        thead .sticky-col {
+            z-index: 20;
+        }
+
+        /* Sticky Profile */
+        .sticky-profile {
+            position: sticky;
+            top: 4.5rem;
+            z-index: 40;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #3b82f6;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .stat-value { font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass-card border-b border-slate-700 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3 text-center">
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight leading-none">Baseball League</h1>
+                    <span id="current-week-badge" class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Syncing...</span>
+                </div>
+            </div>
+            <div class="flex gap-1 bg-slate-900/80 p-1.5 rounded-full border border-slate-700">
+                <button onclick="showPage('home')" id="nav-home" class="nav-link px-5 py-2 rounded-full text-sm font-bold">Dashboard</button>
+                <button onclick="showPage('yearly')" id="nav-yearly" class="nav-link px-5 py-2 rounded-full text-sm font-bold">Yearly Stats</button>
+                <button onclick="showPage('teams')" id="nav-teams" class="nav-link px-5 py-2 rounded-full text-sm font-bold">Team Detail</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="app-container" class="max-w-7xl mx-auto p-4 md:p-8">
+        <div id="initial-loader" class="flex flex-col items-center justify-center py-24">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-slate-400 animate-pulse">Processing League Data...</p>
+        </div>
+
+        <!-- Dashboard / Home View -->
+        <section id="page-home" class="hidden space-y-8">
+            <div class="relative overflow-hidden rounded-3xl glass-card border-blue-500/20 p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
+                <div class="flex-1 space-y-4">
+                    <div class="inline-block px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest">Weekly Highlight</div>
+                    <h2 id="hero-header" class="text-3xl md:text-5xl font-black text-white leading-tight"></h2>
+                    <p id="hero-sub" class="text-lg text-slate-400 font-medium"></p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                        <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+                            <p id="hero-point1" class="text-sm text-slate-300 leading-relaxed"></p>
+                        </div>
+                        <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+                            <p id="hero-point2" class="text-sm text-slate-300 leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/3 flex justify-center">
+                    <img id="hero-gif" src="" alt="Highlight" class="rounded-2xl shadow-2xl border-4 border-slate-800 w-full max-w-[280px] aspect-square object-cover">
+                </div>
+            </div>
+
+            <!-- Weekly Standings Comparison Table -->
+            <div class="space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
+                    <h3 class="text-xl font-bold flex items-center gap-2">
+                        <span class="w-2 h-6 bg-indigo-500 rounded-full"></span>
+                        Weekly Stats Comparison
+                    </h3>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="flex bg-slate-900 rounded-full p-1 border border-slate-700 shadow-inner gap-1">
+                            <button onclick="setHomeTableType('stats')" id="home-type-stats" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Stats</button>
+                            <button onclick="setHomeTableType('ranks')" id="home-type-ranks" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Ranks</button>
+                        </div>
+                        <div class="flex bg-slate-900 rounded-full p-1 border border-slate-700 shadow-inner gap-1">
+                            <button onclick="setHomeCategory('batting')" id="home-cat-batting" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Batting</button>
+                            <button onclick="setHomeCategory('pitching')" id="home-cat-pitching" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Pitching</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto rounded-2xl glass-card border-slate-700/50">
+                    <table class="w-full text-left text-sm" id="home-comparison-table">
+                        <thead id="home-standings-head" class="bg-slate-800 text-slate-500 uppercase text-[10px] font-black tracking-widest"></thead>
+                        <tbody id="home-standings-body" class="divide-y divide-slate-700/30"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Benchmarks -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center px-2">
+                        <h3 class="text-xl font-bold flex items-center gap-2">
+                            <span class="w-2 h-6 bg-blue-500 rounded-full"></span>
+                            Weekly Benchmarks
+                        </h3>
+                        <div class="flex bg-slate-900 rounded-full p-1 border border-slate-700 shadow-inner gap-1">
+                            <button onclick="setBenchmarkCategory('batting')" id="bench-cat-batting" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Batting</button>
+                            <button onclick="setBenchmarkCategory('pitching')" id="bench-cat-pitching" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Pitching</button>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-2xl glass-card border-slate-700/50">
+                        <table class="w-full text-left text-sm">
+                            <thead id="bench-table-head" class="bg-slate-800/80 text-slate-500 uppercase text-[10px] font-black tracking-widest"></thead>
+                            <tbody id="bench-table-body" class="divide-y divide-slate-700/30"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Record Books -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center px-2">
+                        <h3 class="text-xl font-bold flex items-center gap-2">
+                            <span class="w-2 h-6 bg-amber-500 rounded-full"></span>
+                            Record Books
+                        </h3>
+                        <div class="flex bg-slate-900 rounded-full p-1 border border-slate-700 shadow-inner gap-1">
+                            <button onclick="setRecordCategory('batting')" id="rec-cat-batting" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Batting</button>
+                            <button onclick="setRecordCategory('pitching')" id="rec-cat-pitching" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Pitching</button>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-2xl glass-card border-slate-700/50">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-800/80 text-slate-500 uppercase text-[10px] font-black tracking-widest">
+                                <tr>
+                                    <th class="px-6 py-4">Category</th>
+                                    <th class="px-6 py-4 text-amber-400">Best</th>
+                                    <th class="px-6 py-4 text-rose-400">Worst</th>
+                                </tr>
+                            </thead>
+                            <tbody id="record-table-body" class="divide-y divide-slate-700/30"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Yearly Stats View -->
+        <section id="page-yearly" class="hidden space-y-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
+                <div>
+                    <h2 class="text-3xl font-black">Season Standings</h2>
+                    <p class="text-slate-400">Full league totals through Week <span class="current-week-text">--</span></p>
+                </div>
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div class="flex bg-slate-900 rounded-full p-1 border border-slate-700 shadow-inner gap-1">
+                        <button onclick="setYearlyCategory('batting')" id="yearly-cat-batting" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Batting</button>
+                        <button onclick="setYearlyCategory('pitching')" id="yearly-cat-pitching" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Pitching</button>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic hidden md:block">Click headers to sort</p>
+                </div>
+            </div>
+            
+            <div id="yearly-batting-section" class="space-y-4">
+                <h3 class="text-lg font-bold text-blue-400 px-2 flex items-center gap-2">Batting Totals</h3>
+                <div class="overflow-x-auto rounded-2xl glass-card border-slate-700/50">
+                    <table class="w-full text-left text-sm" id="yearly-batting-table">
+                        <thead class="bg-slate-800 text-slate-400">
+                            <tr id="batting-header"></tr>
+                        </thead>
+                        <tbody id="yearly-batting-body" class="divide-y divide-slate-700/30"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="yearly-pitching-section" class="space-y-4 hidden">
+                <h3 class="text-lg font-bold text-emerald-400 px-2 flex items-center gap-2">Pitching Totals</h3>
+                <div class="overflow-x-auto rounded-2xl glass-card border-slate-700/50">
+                    <table class="w-full text-left text-sm" id="yearly-pitching-table">
+                        <thead class="bg-slate-800 text-slate-400">
+                            <tr id="pitching-header"></tr>
+                        </thead>
+                        <tbody id="yearly-pitching-body" class="divide-y divide-slate-700/30"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Detail View -->
+        <section id="page-teams" class="hidden space-y-8">
+            <div class="sticky-profile glass-card p-4 md:p-6 rounded-[2rem] border-slate-600/50 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-4 bg-slate-900/90">
+                <div class="text-center lg:text-left">
+                    <h2 class="text-2xl md:text-3xl font-black tracking-tight" id="selected-team-name">Select Team</h2>
+                    <p class="text-blue-400 font-bold uppercase text-[10px] tracking-widest">Individual Performance Profile</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+                    <select id="stat-filter-selector" onchange="updateTeamView()" class="bg-slate-900 border border-slate-700 rounded-2xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-200 text-sm">
+                        <optgroup label="Batting">
+                            <option value="runs">Runs</option>
+                            <option value="hr">HR</option>
+                            <option value="rbi">RBI</option>
+                            <option value="tb">TB</option>
+                            <option value="avg">AVG</option>
+                            <option value="obp">OBP</option>
+                            <option value="nsb">NSB</option>
+                        </optgroup>
+                        <optgroup label="Pitching">
+                            <option value="wins">Wins</option>
+                            <option value="era">ERA</option>
+                            <option value="whip">WHIP</option>
+                            <option value="k_bb">K/BB</option>
+                            <option value="k_9">K/9</option>
+                            <option value="qs">QS</option>
+                            <option value="sv_h">SV/H</option>
+                        </optgroup>
+                    </select>
+                    <div class="relative w-full sm:w-64">
+                        <select id="team-selector" onchange="updateTeamView()" class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-200 shadow-inner text-sm">
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="team-content" class="hidden space-y-8 mt-4">
+                <div class="glass-card p-6 md:p-8 rounded-[2rem] space-y-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <h3 class="font-black text-slate-300 uppercase tracking-widest text-[10px]">Rank Percentiles (Outer = Best)</h3>
+                        <div class="flex bg-slate-900 rounded-full p-1 border border-slate-700 shadow-inner gap-1">
+                            <button onclick="setRadarRankType('week')" id="radar-type-week" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Week</button>
+                            <button onclick="setRadarRankType('season')" id="radar-type-season" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Season</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <h4 class="text-center text-blue-400 font-bold uppercase text-[10px] tracking-widest">Batting Ranks</h4>
+                            <div class="h-64">
+                                <canvas id="battingRadarChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-center text-emerald-400 font-bold uppercase text-[10px] tracking-widest">Pitching Ranks</h4>
+                            <div class="h-64">
+                                <canvas id="pitchingRadarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 md:p-8 rounded-[2rem] space-y-6">
+                    <h3 class="font-black text-center text-slate-300 uppercase tracking-widest text-[10px]">Weekly Trend vs League Context</h3>
+                    <div class="h-80 md:h-96">
+                        <canvas id="teamPerformanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 md:p-8 rounded-[2rem] space-y-6">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-2xl font-black">Player Contributions</h3>
+                        <span id="contribution-stat-badge" class="px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-lg text-xs font-bold text-blue-400 uppercase">--</span>
+                    </div>
+                    <div class="h-[500px]">
+                        <canvas id="statContributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const EMBEDDED_LEAGUE_DATA = { "metadata": { "current_week": 19, "teams": [], "all_weeks": [] }, "pages": { "index": {}, "yearly": {}, "teams": {} } };
+        let leagueData = null;
+        let charts = {};
+
+        let homeCategory = 'batting';
+        let homeTableType = 'stats';
+        let homeSortKey = 'team';
+        let homeSortDir = 1;
+
+        let yearlyCategory = 'batting';
+        let yearlySorts = { batting: { key: 'team', dir: 1 }, pitching: { key: 'team', dir: 1 } };
+        
+        let radarRankType = 'season';
+
+        function sanitizeJson(text) {
+            return text.replace(/:\s*NaN/g, ': null');
+        }
+
+        function formatVal(val) {
+            if (val === null || val === undefined) return '-';
+            if (typeof val !== 'number') return val;
+            return Math.round(val * 1000) / 1000;
+        }
+
+        function updateToggleClasses(groupId, activeId) {
+            const group = document.querySelectorAll(`[id^="${groupId}"]`);
+            group.forEach(btn => {
+                if (btn.id === activeId) {
+                    btn.classList.add('bg-blue-600', 'text-white', 'shadow-[0_0_15px_rgba(37,99,235,0.4)]', 'scale-105', 'z-10');
+                    btn.classList.remove('bg-slate-800', 'text-slate-500');
+                } else {
+                    btn.classList.remove('bg-blue-600', 'text-white', 'shadow-[0_0_15px_rgba(37,99,235,0.4)]', 'scale-105', 'z-10');
+                    btn.classList.add('bg-slate-800', 'text-slate-500', 'hover:text-slate-300', 'hover:bg-slate-700');
+                }
+            });
+        }
+
+        function getStatColor(val, min, max, inverse = false) {
+            if (val === null || val === undefined || min === max) return 'transparent';
+            let pct = (val - min) / (max - min);
+            if (inverse) pct = 1 - pct;
+            const red = 239 - (239 - 34) * pct;
+            const green = 68 + (197 - 68) * pct;
+            const blue = 68 + (94 - 68) * pct;
+            return `rgba(${red}, ${green}, ${blue}, 0.25)`;
+        }
+
+        async function init() {
+            try {
+                const response = await fetch('./league_data.json');
+                if (response.ok) {
+                    const rawText = await response.text();
+                    const cleanText = sanitizeJson(rawText);
+                    leagueData = JSON.parse(cleanText);
+                } else {
+                    leagueData = EMBEDDED_LEAGUE_DATA;
+                }
+                finishLoading();
+            } catch (err) {
+                console.error("Initialization error:", err);
+                leagueData = EMBEDDED_LEAGUE_DATA;
+                finishLoading();
+            }
+        }
+
+        function finishLoading() {
+            document.getElementById('initial-loader').classList.add('hidden');
+            const week = leagueData.metadata?.current_week || 0;
+            document.getElementById('current-week-badge').textContent = `Week ${week} Dashboard`;
+            document.querySelectorAll('.current-week-text').forEach(el => el.textContent = week);
+            
+            populateTeamSelector();
+            renderHome();
+            showPage('home');
+        }
+
+        function showPage(pageId) {
+            if (!leagueData) return;
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
+            document.getElementById(`nav-${pageId}`).classList.add('active');
+            if (pageId === 'yearly') renderYearly();
+            if (pageId === 'teams') updateTeamView();
+        }
+
+        // --- DASHBOARD ---
+
+        function setHomeCategory(cat) {
+            homeCategory = cat;
+            updateToggleClasses('home-cat-', `home-cat-${cat}`);
+            renderHomeStandingTable();
+        }
+
+        function setHomeTableType(type) {
+            homeTableType = type;
+            updateToggleClasses('home-type-', `home-type-${type}`);
+            renderHomeStandingTable();
+        }
+
+        function sortHomeTable(key) {
+            if (homeSortKey === key) homeSortDir *= -1;
+            else { homeSortKey = key; homeSortDir = 1; }
+            renderHomeStandingTable();
+        }
+
+        function renderHomeStandingTable() {
+            const head = document.getElementById('home-standings-head');
+            const body = document.getElementById('home-standings-body');
+            const isBatting = homeCategory === 'batting';
+            const isStats = homeTableType === 'stats';
+            const weekIdx = leagueData.metadata.current_week - 1;
+
+            const bKeys = ['h_ab', 'r', 'hr', 'rbi', 'tb', 'avg', 'obp', 'nsb'];
+            const pKeys = ['ip', 'w', 'era', 'whip', 'k_bb', 'k_9', 'qs', 'sv_h'];
+            const keys = isBatting ? bKeys : pKeys;
+
+            const headCells = [`<th class="px-6 py-4 sortable sticky-col bg-slate-800" onclick="sortHomeTable('team')">Team ${homeSortKey==='team'?(homeSortDir>0?'↑':'↓'):''}</th>`];
+            keys.forEach(k => {
+                headCells.push(`<th class="px-6 py-4 sortable" onclick="sortHomeTable('${k}')">${k.toUpperCase()} ${homeSortKey===k?(homeSortDir>0?'↑':'↓'):''}</th>`);
+            });
+            head.innerHTML = `<tr>${headCells.join('')}</tr>`;
+
+            const tableData = leagueData.metadata.teams.map(teamName => {
+                const row = { team: teamName };
+                keys.forEach(k => {
+                    if (isStats) {
+                        const s = leagueData.pages.teams[teamName].weekly_stats;
+                        row[k] = (s[k] && s[k][weekIdx] !== undefined) ? s[k][weekIdx] : null;
+                    } else {
+                        const rankSrc = isBatting ? leagueData.pages.index.batting_rank : leagueData.pages.index.pitching_rank;
+                        const rankObj = rankSrc.find(r => r.team === teamName);
+                        row[k] = rankObj ? rankObj[`${k}_rank`] : null;
+                    }
+                });
+                return row;
+            });
+
+            tableData.sort((a,b) => {
+                const va = a[homeSortKey], vb = b[homeSortKey];
+                if (va === null) return 1;
+                if (vb === null) return -1;
+                return va > vb ? homeSortDir : -homeSortDir;
+            });
+
+            const colRanges = {};
+            keys.forEach(k => {
+                const vals = tableData.map(r => r[k]).filter(v => v !== null);
+                colRanges[k] = { min: Math.min(...vals), max: Math.max(...vals) };
+            });
+
+            body.innerHTML = '';
+            tableData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition-colors group";
+                let cells = `<td class="px-6 py-4 font-bold text-blue-400 whitespace-nowrap sticky-col bg-slate-900 group-hover:bg-slate-800 transition-colors">${row.team}</td>`;
+                keys.forEach(k => {
+                    const val = row[k];
+                    const range = colRanges[k];
+                    const inverse = (!isStats) || k === 'era' || k === 'whip';
+                    const bgColor = getStatColor(val, range.min, range.max, inverse);
+                    cells += `<td class="px-6 py-4 text-slate-100 stat-value" style="background-color: ${bgColor}">${formatVal(val)}</td>`;
+                });
+                tr.innerHTML = cells;
+                body.appendChild(tr);
+            });
+        }
+
+        let benchCategory = 'batting';
+        function setBenchmarkCategory(cat) {
+            benchCategory = cat;
+            updateToggleClasses('bench-cat-', `bench-cat-${cat}`);
+            renderBenchmarks();
+        }
+        function renderBenchmarks() {
+            const head = document.getElementById('bench-table-head');
+            const body = document.getElementById('bench-table-body');
+            const isB = benchCategory === 'batting';
+            const keys = isB ? ['h_ab', 'r', 'hr', 'rbi', 'tb', 'avg', 'obp', 'nsb'] : ['ip', 'w', 'era', 'whip', 'k_bb', 'k_9', 'qs', 'sv_h'];
+            head.innerHTML = `<tr><th class="px-6 py-4">Metric</th><th class="px-6 py-4 text-emerald-400">Best</th><th class="px-6 py-4">Avg</th><th class="px-6 py-4 text-rose-400">Worst</th></tr>`;
+            body.innerHTML = '';
+            const summary = leagueData.pages.index.summary_table || [];
+            const best = summary.find(r => r.Summary === 'Best') || {};
+            const avg = summary.find(r => r.Summary === 'Average') || {};
+            const worst = summary.find(r => r.Summary === 'Worst') || {};
+            keys.forEach(k => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="px-6 py-4 font-bold text-slate-400 uppercase text-[9px] tracking-widest">${k}</td>
+                    <td class="px-6 py-4 text-emerald-400 font-bold stat-value">${formatVal(best[k])}</td>
+                    <td class="px-6 py-4 text-slate-400 stat-value">${formatVal(avg[k])}</td>
+                    <td class="px-6 py-4 text-rose-400 stat-value">${formatVal(worst[k])}</td>`;
+                body.appendChild(tr);
+            });
+        }
+
+        let recordCategory = 'batting';
+        function setRecordCategory(cat) {
+            recordCategory = cat;
+            updateToggleClasses('rec-cat-', `rec-cat-${cat}`);
+            renderRecords();
+        }
+        function renderRecords() {
+            const body = document.getElementById('record-table-body');
+            const isB = recordCategory === 'batting';
+            const keys = isB ? ['h_ab', 'r', 'hr', 'rbi', 'tb', 'avg', 'obp', 'nsb'] : ['ip', 'w', 'era', 'whip', 'k_bb', 'k_9', 'qs', 'sv_h'];
+            const bests = leagueData.pages.index.record_book?.best || {};
+            const worsts = leagueData.pages.index.record_book?.worst || {};
+            body.innerHTML = '';
+            keys.forEach(k => {
+                const tr = document.createElement('tr');
+                // add worsts stats to the row
+                const worst = worsts[k] || {};
+                const data = bests[k] || {};
+                tr.innerHTML = `<td class="px-6 py-4 font-bold text-slate-400 uppercase text-[9px] tracking-widest">${k}</td>
+                    <td class="px-6 py-4"><div class="text-amber-400 font-bold">${formatVal(data.value)}</div><div class="text-[8px] text-slate-500">${data.team_name || ''}</div><div class="text-[8px] text-slate-500">${data.season || ''}-${data.week}</div></td>
+                    <td class="px-6 py-4"><div class="text-amber-400 font-bold">${formatVal(worst.value)}</div><div class="text-[8px] text-slate-500">${worst.team_name || ''}</div><div class="text-[8px] text-slate-500">${worst.season || ''}-${worst.week}</div></td>`;
+                body.appendChild(tr);
+            });
+        }
+
+        function renderHome() {
+            const index = leagueData.pages.index;
+            if (!index) return;
+            document.getElementById('hero-header').textContent = index.highlight?.header || "League Update";
+            document.getElementById('hero-sub').textContent = index.highlight?.header2 || "";
+            document.getElementById('hero-gif').src = index.highlight?.gif_url || "";
+            document.getElementById('hero-point1').textContent = index.highlight?.point1 || "";
+            document.getElementById('hero-point2').textContent = index.highlight?.point2 || "";
+            updateToggleClasses('home-type-', 'home-type-stats');
+            updateToggleClasses('home-cat-', 'home-cat-batting');
+            updateToggleClasses('bench-cat-', 'bench-cat-batting');
+            updateToggleClasses('rec-cat-', 'rec-cat-batting');
+            renderHomeStandingTable();
+            renderBenchmarks();
+            renderRecords();
+        }
+
+        // --- YEARLY ---
+
+        function setYearlyCategory(cat) {
+            yearlyCategory = cat;
+            updateToggleClasses('yearly-cat-', `yearly-cat-${cat}`);
+            
+            document.getElementById('yearly-batting-section').classList.toggle('hidden', cat !== 'batting');
+            document.getElementById('yearly-pitching-section').classList.toggle('hidden', cat !== 'pitching');
+            
+            renderYearly();
+        }
+
+        function sortYearly(type, key) {
+            const s = yearlySorts[type];
+            if (s.key === key) s.dir *= -1;
+            else { s.key = key; s.dir = 1; }
+            renderYearly();
+        }
+
+        function renderYearly() {
+            const labels = { h_ab: 'AB', tb: 'TB', r: 'R', hr: 'HR', rbi: 'RBI', avg: 'AVG', obp: 'OBP', nsb: 'NSB', ip: 'IP', w: 'W', era: 'ERA', whip: 'WHIP', k_9: 'K/9', qs: 'QS', k_bb: 'K/BB', sv_h: 'SV/H' };
+            const bKeys = ['team', 'h_ab', 'tb', 'r', 'hr', 'rbi', 'avg', 'obp', 'nsb'];
+            const pKeys = ['team', 'ip', 'w', 'era', 'whip', 'k_9', 'qs', 'k_bb', 'sv_h'];
+
+            const renderTable = (keys, type) => {
+                const head = document.getElementById(`${type}-header`);
+                const body = document.getElementById(`yearly-${type}-body`);
+                const s = yearlySorts[type];
+                
+                head.innerHTML = keys.map((k, i) => {
+                    const stickyClass = i === 0 ? 'sticky-col bg-slate-800' : '';
+                    return `<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest sortable ${stickyClass}" onclick="sortYearly('${type}', '${k}')">${labels[k]||k} ${s.key===k?(s.dir>0?'↑':'↓'):''}</th>`;
+                }).join('');
+                
+                const data = [...(leagueData.pages.yearly[type] || [])];
+                data.sort((a,b) => (a[s.key] > b[s.key] ? s.dir : -s.dir));
+                
+                body.innerHTML = '';
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-800/40 transition-colors group";
+                    tr.innerHTML = keys.map((k, i) => {
+                        const stickyClass = i === 0 ? 'sticky-col bg-slate-900 group-hover:bg-slate-800 transition-colors' : '';
+                        return `<td class="px-6 py-4 ${i===0?'font-bold text-blue-400':'text-slate-300 stat-value'} ${stickyClass}">${formatVal(row[k])}</td>`;
+                    }).join('');
+                    body.appendChild(tr);
+                });
+            };
+            
+            if (yearlyCategory === 'batting') renderTable(bKeys, 'batting');
+            else renderTable(pKeys, 'pitching');
+            
+            updateToggleClasses('yearly-cat-', `yearly-cat-${yearlyCategory}`);
+        }
+
+        // --- TEAM DETAIL ---
+
+        function setRadarRankType(type) {
+            radarRankType = type;
+            updateToggleClasses('radar-type-', `radar-type-${type}`);
+            updateTeamView();
+        }
+
+        function populateTeamSelector() {
+            const selector = document.getElementById('team-selector');
+            selector.innerHTML = '<option value="" disabled selected>Select Team</option>';
+            (leagueData.metadata.teams || []).forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t; opt.textContent = t;
+                selector.appendChild(opt);
+            });
+        }
+
+        function updateTeamView() {
+            const teamName = document.getElementById('team-selector').value;
+            const statKey = document.getElementById('stat-filter-selector').value;
+            if (!teamName) return;
+            document.getElementById('selected-team-name').textContent = teamName;
+            document.getElementById('team-content').classList.remove('hidden');
+            document.getElementById('contribution-stat-badge').textContent = statKey;
+            updateToggleClasses('radar-type-', `radar-type-${radarRankType}`);
+            renderDualRadar(teamName);
+            renderPerformanceTrend(teamName, statKey);
+            renderStatContribution(teamName, statKey);
+        }
+
+        function renderDualRadar(teamName) {
+            const isSeason = radarRankType === 'season';
+            const getRank = (team, key, isB) => {
+                if (!isSeason) {
+                    const src = isB ? leagueData.pages.index.batting_rank : leagueData.pages.index.pitching_rank;
+                    const obj = src.find(r => r.team === team);
+                    return obj ? obj[`${key}_rank`] : 10;
+                } else {
+                    const src = isB ? leagueData.pages.yearly.batting : leagueData.pages.yearly.pitching;
+                    const sorted = [...src].sort((a,b) => (b[key]||0) - (a[key]||0));
+                    if (key === 'era' || key === 'whip') sorted.reverse();
+                    const r = sorted.findIndex(row => row.team === team) + 1;
+                    return r > 0 ? r : 10;
+                }
+            };
+            const configs = [
+                { id: 'battingRadarChart', labels: ['OBP','AVG','HR','R','RBI','NSB'], keys: ['obp','avg','hr','r','rbi','nsb'], isB: true, color: '#3b82f6' },
+                { id: 'pitchingRadarChart', labels: ['ERA','WHIP','K/9','QS','SV/H'], keys: ['era','whip','k_9','qs','sv_h'], isB: false, color: '#10b981' }
+            ];
+            configs.forEach(c => {
+                const ctx = document.getElementById(c.id).getContext('2d');
+                if (charts[c.id]) charts[c.id].destroy();
+                charts[c.id] = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: c.labels,
+                        datasets: [{
+                            data: c.keys.map(k => 11 - getRank(teamName, k, c.isB)),
+                            backgroundColor: c.color + '22',
+                            borderColor: c.color,
+                            borderWidth: 2, pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        scales: { r: { min: 0, max: 10, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.05)' }, pointLabels: { color: '#64748b', font: { size: 9, weight: 'bold' } } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            });
+        }
+
+        function renderPerformanceTrend(teamName, statKey) {
+            const ctx = document.getElementById('teamPerformanceChart').getContext('2d');
+            const weeks = leagueData.metadata.all_weeks;
+            const teamData = (leagueData.pages.teams[teamName].weekly_stats[statKey] || []).map(v => formatVal(v));
+            const bests = [], worsts = [], avgs = [];
+            weeks.forEach((w, idx) => {
+                const vals = Object.values(leagueData.pages.teams).map(t => (t.weekly_stats[statKey] || [])[idx] || 0);
+                bests.push(formatVal(Math.max(...vals)));
+                worsts.push(formatVal(Math.min(...vals)));
+                avgs.push(formatVal(vals.reduce((a,b)=>a+b,0) / vals.length));
+            });
+            if (charts.performance) charts.performance.destroy();
+            charts.performance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: weeks.map(w => `W${w}`),
+                    datasets: [
+                        { label: teamName, data: teamData, borderColor: '#3b82f6', borderWidth: 4, tension: 0.3, z: 10 },
+                        { label: 'Best', data: bests, borderColor: '#10b981', borderDash: [5,5], pointRadius: 0, tension: 0.3 },
+                        { label: 'Worst', data: worsts, borderColor: '#ef4444', borderDash: [5,5], pointRadius: 0, tension: 0.3 },
+                        { label: 'Avg', data: avgs, borderColor: '#64748b', backgroundColor: 'rgba(100,116,139,0.05)', fill: true, pointRadius: 0, tension: 0.3 }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }, x: { grid: { display: false }, ticks: { color: '#64748b' } } },
+                    plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc', usePointStyle: true, boxWidth: 6, font: { size: 10 } } } }
+                }
+            });
+        }
+
+        function renderStatContribution(teamName, statKey) {
+            const ctx = document.getElementById('statContributionChart').getContext('2d');
+            const week = leagueData.metadata.current_week.toString();
+            const teamObj = leagueData.pages.teams[teamName];
+            if (!teamObj || !teamObj.contributions) return;
+
+            const map = {
+                'obp': { t: 'batting', f: 'obp' }, 
+                'avg': { t: 'batting', f: 'avg' }, 
+                'hr': { t: 'batting', f: 'hr_pct' },
+                'r': { t: 'batting', f: 'runs_pct' },
+                'rbi': { t: 'batting', f: 'rbi_pct' },
+                'nsb': { t: 'batting', f: 'nsb_pct' },
+                'era': { t: 'pitching', f: 'era_impact' },
+                'whip': { t: 'pitching', f: 'whip_impact' },
+                'k_9': { t: 'pitching', f: 'k9_impact' },
+                'qs': { t: 'pitching', f: 'qs_pct' },
+                'sv_h': { t: 'pitching', f: 's_h_pct' }
+            };
+
+            const cfg = map[statKey];
+            if (!cfg) return;
+
+            const players = (teamObj.contributions[cfg.t][week] || []).filter(p => p.name !== 0);
+            
+            if (charts.contribution) charts.contribution.destroy();
+            charts.contribution = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: players.map(p => p.name),
+                    datasets: [{
+                        label: `Impact on ${statKey.toUpperCase()}`,
+                        data: players.map(p => {
+                            const val = p[cfg.f] ?? p[`${statKey}_team`] ?? p[statKey] ?? 0;
+                            return formatVal(val);
+                        }),
+                        backgroundColor: cfg.t === 'batting' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(16, 185, 129, 0.6)',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    scales: { 
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }, 
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } } } 
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
