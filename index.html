@@ -78,18 +78,17 @@
 <body class="min-h-screen">
 
     <!-- Navigation -->
-    <nav class="sticky top-0 z-50 glass-card border-b border-slate-700 px-4 py-3">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <nav class="sticky top-0 z-50 glass-card border-b border-slate-700 px-1 py-1">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-1">
             <div class="flex items-center gap-3 text-center">
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight leading-none">Baseball League</h1>
                     <span id="current-week-badge" class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Syncing...</span>
                 </div>
             </div>
-            <div class="flex gap-1 bg-slate-900/80 p-1.5 rounded-full border border-slate-700">
-                <button onclick="showPage('home')" id="nav-home" class="nav-link px-5 py-2 rounded-full text-sm font-bold">Dashboard</button>
-                <button onclick="showPage('yearly')" id="nav-yearly" class="nav-link px-5 py-2 rounded-full text-sm font-bold">Yearly Stats</button>
-                <button onclick="showPage('teams')" id="nav-teams" class="nav-link px-5 py-2 rounded-full text-sm font-bold">Team Detail</button>
+            <div class="flex gap-1 bg-slate-900/80 p-0.5 rounded-full border border-slate-700">
+                <button onclick="showPage('home')" id="nav-home" class="nav-link px-5 py-0.5 rounded-full text-sm font-bold">Dashboard</button>
+                <button onclick="showPage('yearly')" id="nav-yearly" class="nav-link px-5 py-0.5 rounded-full text-sm font-bold">Yearly Stats</button>
+                <button onclick="showPage('teams')" id="nav-teams" class="nav-link px-5 py-0.5 rounded-full text-sm font-bold">Team Detail</button>
             </div>
         </div>
     </nav>
@@ -102,17 +101,17 @@
         </div>
 
         <!-- Dashboard / Home View -->
-        <section id="page-home" class="hidden space-y-8">
-            <div class="relative overflow-hidden rounded-3xl glass-card border-blue-500/20 p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
-                <div class="flex-1 space-y-4">
+        <section id="page-home" class="hidden space-y-2">
+            <div class="relative overflow-hidden rounded-3xl glass-card border-blue-500/20 p-8 md:p-12 flex flex-col md:flex-row items-center gap-2 shadow-2xl">
+                <div class="flex-1 space-y-2">
                     <div class="inline-block px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest">Weekly Highlight</div>
                     <h2 id="hero-header" class="text-3xl md:text-5xl font-black text-white leading-tight"></h2>
                     <p id="hero-sub" class="text-lg text-slate-400 font-medium"></p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                        <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
+                        <div class="bg-slate-800/40 p-2 rounded-2xl border border-slate-700/50">
                             <p id="hero-point1" class="text-sm text-slate-300 leading-relaxed"></p>
                         </div>
-                        <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+                        <div class="bg-slate-800/40 p-2 rounded-2xl border border-slate-700/50">
                             <p id="hero-point2" class="text-sm text-slate-300 leading-relaxed"></p>
                         </div>
                     </div>
@@ -177,17 +176,17 @@
                             Record Books
                         </h3>
                         <div class="flex bg-slate-900 rounded-full p-1 border border-slate-700 shadow-inner gap-1">
-                            <button onclick="setRecordCategory('batting')" id="rec-cat-batting" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Batting</button>
-                            <button onclick="setRecordCategory('pitching')" id="rec-cat-pitching" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Pitching</button>
+                            <button onclick="setRecordCategory('batting')" id="rec-cat-batting" class="px-4 py-0.5 text-xs font-bold rounded-full transition-all">Batting</button>
+                            <button onclick="setRecordCategory('pitching')" id="rec-cat-pitching" class="px-4 py-0.5 text-xs font-bold rounded-full transition-all">Pitching</button>
                         </div>
                     </div>
                     <div class="overflow-hidden rounded-2xl glass-card border-slate-700/50">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-800/80 text-slate-500 uppercase text-[10px] font-black tracking-widest">
                                 <tr>
-                                    <th class="px-6 py-4">Category</th>
+                                    <th class="px-2 py-4">Metric</th>
                                     <th class="px-6 py-4 text-amber-400">Best</th>
-                                    <th class="px-6 py-4 text-rose-400">Worst</th>
+                                    <th class="px-6 py-4 text-[#CD7F32]">Worst</th>
                                 </tr>
                             </thead>
                             <tbody id="record-table-body" class="divide-y divide-slate-700/30"></tbody>
@@ -198,16 +197,16 @@
         </section>
 
         <!-- Yearly Stats View -->
-        <section id="page-yearly" class="hidden space-y-8">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
+        <section id="page-yearly" class="hidden space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 px-2">
                 <div>
                     <h2 class="text-3xl font-black">Season Standings</h2>
                     <p class="text-slate-400">Full league totals through Week <span class="current-week-text">--</span></p>
                 </div>
                 <div class="flex flex-wrap gap-4 items-center">
                     <div class="flex bg-slate-900 rounded-full p-1 border border-slate-700 shadow-inner gap-1">
-                        <button onclick="setYearlyCategory('batting')" id="yearly-cat-batting" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Batting</button>
-                        <button onclick="setYearlyCategory('pitching')" id="yearly-cat-pitching" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Pitching</button>
+                        <button onclick="setYearlyCategory('batting')" id="yearly-cat-batting" class="px-4 py-1 text-xs font-bold rounded-full transition-all">Batting</button>
+                        <button onclick="setYearlyCategory('pitching')" id="yearly-cat-pitching" class="px-4 py-1 text-xs font-bold rounded-full transition-all">Pitching</button>
                     </div>
                     <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic hidden md:block">Click headers to sort</p>
                 </div>
@@ -239,16 +238,19 @@
         </section>
 
         <!-- Team Detail View -->
-        <section id="page-teams" class="hidden space-y-8">
-            <div class="sticky-profile glass-card p-4 md:p-6 rounded-[2rem] border-slate-600/50 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-4 bg-slate-900/90">
-                <div class="text-center lg:text-left">
-                    <h2 class="text-2xl md:text-3xl font-black tracking-tight" id="selected-team-name">Select Team</h2>
-                    <p class="text-blue-400 font-bold uppercase text-[10px] tracking-widest">Individual Performance Profile</p>
-                </div>
+        <section id="page-teams" class="hidden space-y-4">
+            <div class="sticky-profile glass-card p-2 md:p-6 rounded-[2rem] border-slate-600/50 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-2 bg-slate-900/90">
+                <!-- <div class="text-center lg:text-left"> -->
+                    <!-- <h2 class="text-sm md:text-3xl font-black tracking-tight" id="selected-team-name">Select Team</h2> -->
+                <!-- </div> -->
+                    <div class="relative w-full sm:w-64">
+                        <select id="team-selector" onchange="updateTeamView()" class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-1.5 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-200 shadow-inner text-sm">
+                        </select>
+                    </div>
                 <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-                    <select id="stat-filter-selector" onchange="updateTeamView()" class="bg-slate-900 border border-slate-700 rounded-2xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-200 text-sm">
+                    <select id="stat-filter-selector" onchange="updateTeamView()" class="bg-slate-900 border border-slate-700 rounded-2xl px-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-200 text-sm">
                         <optgroup label="Batting">
-                            <option value="runs">Runs</option>
+                            <option value="r">Runs</option>
                             <option value="hr">HR</option>
                             <option value="rbi">RBI</option>
                             <option value="tb">TB</option>
@@ -266,17 +268,13 @@
                             <option value="sv_h">SV/H</option>
                         </optgroup>
                     </select>
-                    <div class="relative w-full sm:w-64">
-                        <select id="team-selector" onchange="updateTeamView()" class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-200 shadow-inner text-sm">
-                        </select>
-                    </div>
                 </div>
             </div>
 
             <div id="team-content" class="hidden space-y-8 mt-4">
                 <div class="glass-card p-6 md:p-8 rounded-[2rem] space-y-8">
                     <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <h3 class="font-black text-slate-300 uppercase tracking-widest text-[10px]">Rank Percentiles (Outer = Best)</h3>
+                        <!-- <h3 class="font-black text-slate-300 uppercase tracking-widest text-[10px]">Rank Percentiles (Outer = Best)</h3> -->
                         <div class="flex bg-slate-900 rounded-full p-1 border border-slate-700 shadow-inner gap-1">
                             <button onclick="setRadarRankType('week')" id="radar-type-week" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Week</button>
                             <button onclick="setRadarRankType('season')" id="radar-type-season" class="px-4 py-1.5 text-xs font-bold rounded-full transition-all">Season</button>
@@ -387,7 +385,7 @@
         function finishLoading() {
             document.getElementById('initial-loader').classList.add('hidden');
             const week = leagueData.metadata?.current_week || 0;
-            document.getElementById('current-week-badge').textContent = `Week ${week} Dashboard`;
+            document.getElementById('current-week-badge').textContent = `Week ${week}`;
             document.querySelectorAll('.current-week-text').forEach(el => el.textContent = week);
             
             populateTeamSelector();
@@ -436,9 +434,9 @@
             const pKeys = ['ip', 'w', 'era', 'whip', 'k_bb', 'k_9', 'qs', 'sv_h'];
             const keys = isBatting ? bKeys : pKeys;
 
-            const headCells = [`<th class="px-6 py-4 sortable sticky-col bg-slate-800" onclick="sortHomeTable('team')">Team ${homeSortKey==='team'?(homeSortDir>0?'↑':'↓'):''}</th>`];
+            const headCells = [`<th class="px-6 py-2 sortable sticky-col bg-slate-800" onclick="sortHomeTable('team')">Team ${homeSortKey==='team'?(homeSortDir>0?'↑':'↓'):''}</th>`];
             keys.forEach(k => {
-                headCells.push(`<th class="px-6 py-4 sortable" onclick="sortHomeTable('${k}')">${k.toUpperCase()} ${homeSortKey===k?(homeSortDir>0?'↑':'↓'):''}</th>`);
+                headCells.push(`<th class="px-6 py-2 sortable" onclick="sortHomeTable('${k}')">${k.toUpperCase()} ${homeSortKey===k?(homeSortDir>0?'↑':'↓'):''}</th>`);
             });
             head.innerHTML = `<tr>${headCells.join('')}</tr>`;
 
@@ -474,13 +472,13 @@
             tableData.forEach(row => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/40 transition-colors group";
-                let cells = `<td class="px-6 py-4 font-bold text-blue-400 whitespace-nowrap sticky-col bg-slate-900 group-hover:bg-slate-800 transition-colors">${row.team}</td>`;
+                let cells = `<td class="px-2 py-1 text-xs font-bold text-blue-400 whitespace-nowrap sticky-col bg-slate-900 group-hover:bg-slate-800 transition-colors">${row.team}</td>`;
                 keys.forEach(k => {
                     const val = row[k];
                     const range = colRanges[k];
                     const inverse = (!isStats) || k === 'era' || k === 'whip';
                     const bgColor = getStatColor(val, range.min, range.max, inverse);
-                    cells += `<td class="px-6 py-4 text-slate-100 stat-value" style="background-color: ${bgColor}">${formatVal(val)}</td>`;
+                    cells += `<td class="px-6 py-2 text-slate-100 stat-value" style="background-color: ${bgColor}">${formatVal(val)}</td>`;
                 });
                 tr.innerHTML = cells;
                 body.appendChild(tr);
@@ -498,7 +496,7 @@
             const body = document.getElementById('bench-table-body');
             const isB = benchCategory === 'batting';
             const keys = isB ? ['h_ab', 'r', 'hr', 'rbi', 'tb', 'avg', 'obp', 'nsb'] : ['ip', 'w', 'era', 'whip', 'k_bb', 'k_9', 'qs', 'sv_h'];
-            head.innerHTML = `<tr><th class="px-6 py-4">Metric</th><th class="px-6 py-4 text-emerald-400">Best</th><th class="px-6 py-4">Avg</th><th class="px-6 py-4 text-rose-400">Worst</th></tr>`;
+            head.innerHTML = `<tr><th class="px-4 py-2">Metric</th><th class="px-6 py-2 text-emerald-400">Best</th><th class="px-6 py-2">Avg</th><th class="px-6 py-2 text-rose-400">Worst</th></tr>`;
             body.innerHTML = '';
             const summary = leagueData.pages.index.summary_table || [];
             const best = summary.find(r => r.Summary === 'Best') || {};
@@ -506,10 +504,10 @@
             const worst = summary.find(r => r.Summary === 'Worst') || {};
             keys.forEach(k => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td class="px-6 py-4 font-bold text-slate-400 uppercase text-[9px] tracking-widest">${k}</td>
-                    <td class="px-6 py-4 text-emerald-400 font-bold stat-value">${formatVal(best[k])}</td>
-                    <td class="px-6 py-4 text-slate-400 stat-value">${formatVal(avg[k])}</td>
-                    <td class="px-6 py-4 text-rose-400 stat-value">${formatVal(worst[k])}</td>`;
+                tr.innerHTML = `<td class="px-6 py-2 font-bold text-slate-400 uppercase text-[9px] tracking-widest">${k}</td>
+                    <td class="px-6 py-2 text-emerald-400 font-bold stat-value">${formatVal(best[k])}</td>
+                    <td class="px-6 py-2 text-slate-400 stat-value">${formatVal(avg[k])}</td>
+                    <td class="px-6 py-2 text-rose-400 stat-value">${formatVal(worst[k])}</td>`;
                 body.appendChild(tr);
             });
         }
@@ -532,9 +530,28 @@
                 // add worsts stats to the row
                 const worst = worsts[k] || {};
                 const data = bests[k] || {};
-                tr.innerHTML = `<td class="px-6 py-4 font-bold text-slate-400 uppercase text-[9px] tracking-widest">${k}</td>
-                    <td class="px-6 py-4"><div class="text-amber-400 font-bold">${formatVal(data.value)}</div><div class="text-[8px] text-slate-500">${data.team_name || ''}</div><div class="text-[8px] text-slate-500">${data.season || ''}-${data.week}</div></td>
-                    <td class="px-6 py-4"><div class="text-amber-400 font-bold">${formatVal(worst.value)}</div><div class="text-[8px] text-slate-500">${worst.team_name || ''}</div><div class="text-[8px] text-slate-500">${worst.season || ''}-${worst.week}</div></td>`;
+                tr.innerHTML = `
+                    <td class="px-2 py-2 font-bold text-slate-400 uppercase text-[9px] tracking-widest">${k}</td>
+                    
+                    <td class="px-6 py-2">
+                        <div class="flex items-start gap-1">
+                            <div class="text-amber-400 font-bold text-base leading-none">${formatVal(data.value)}</div>
+                            <div class="flex flex-col border-l border-slate-700 pl-3">
+                                <div class="text-[8px] font-semibold text-slate-300 uppercase tracking-tight leading-none">${data.team_name || ''}</div>
+                                <div class="text-[8px] text-slate-500 leading-none">${data.season || ''}-${data.week}</div>
+                            </div>
+                        </div>
+                    </td>
+                
+                    <td class="px-6 py-2">
+                        <div class="flex items-start gap-1">
+                            <div class="text-[#CD7F32] font-bold text-base leading-none">${formatVal(worst.value)}</div>
+                            <div class="flex flex-col border-l border-slate-700 pl-3">
+                                <div class="text-[8px] font-semibold text-slate-300 uppercase tracking-tight leading-none">${worst.team_name || ''}</div>
+                                <div class="text-[8px] text-slate-500 leading-none">${worst.season || ''}-${worst.week}</div>
+                            </div>
+                        </div>
+                    </td>`;
                 body.appendChild(tr);
             });
         }
@@ -587,7 +604,7 @@
                 
                 head.innerHTML = keys.map((k, i) => {
                     const stickyClass = i === 0 ? 'sticky-col bg-slate-800' : '';
-                    return `<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest sortable ${stickyClass}" onclick="sortYearly('${type}', '${k}')">${labels[k]||k} ${s.key===k?(s.dir>0?'↑':'↓'):''}</th>`;
+                    return `<th class="px-6 py-2 text-[10px] font-black uppercase tracking-widest sortable ${stickyClass}" onclick="sortYearly('${type}', '${k}')">${labels[k]||k} ${s.key===k?(s.dir>0?'↑':'↓'):''}</th>`;
                 }).join('');
                 
                 const data = [...(leagueData.pages.yearly[type] || [])];
@@ -598,8 +615,8 @@
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-800/40 transition-colors group";
                     tr.innerHTML = keys.map((k, i) => {
-                        const stickyClass = i === 0 ? 'sticky-col bg-slate-900 group-hover:bg-slate-800 transition-colors' : '';
-                        return `<td class="px-6 py-4 ${i===0?'font-bold text-blue-400':'text-slate-300 stat-value'} ${stickyClass}">${formatVal(row[k])}</td>`;
+                        const stickyClass = i === 0 ? 'sticky-col text-xs bg-slate-900 group-hover:bg-slate-800 transition-colors' : '';
+                        return `<td class="px-6 py-2 ${i===0?'font-bold text-blue-400':'text-slate-300 stat-value'} ${stickyClass}">${formatVal(row[k])}</td>`;
                     }).join('');
                     body.appendChild(tr);
                 });
@@ -633,7 +650,7 @@
             const teamName = document.getElementById('team-selector').value;
             const statKey = document.getElementById('stat-filter-selector').value;
             if (!teamName) return;
-            document.getElementById('selected-team-name').textContent = teamName;
+            // document.getElementById('selected-team-name').textContent = teamName;
             document.getElementById('team-content').classList.remove('hidden');
             document.getElementById('contribution-stat-badge').textContent = statKey;
             updateToggleClasses('radar-type-', `radar-type-${radarRankType}`);
@@ -658,8 +675,8 @@
                 }
             };
             const configs = [
-                { id: 'battingRadarChart', labels: ['OBP','AVG','HR','R','RBI','NSB'], keys: ['obp','avg','hr','r','rbi','nsb'], isB: true, color: '#3b82f6' },
-                { id: 'pitchingRadarChart', labels: ['ERA','WHIP','K/9','QS','SV/H'], keys: ['era','whip','k_9','qs','sv_h'], isB: false, color: '#10b981' }
+                { id: 'battingRadarChart', labels: ['R', 'HR', 'RBI', 'TB', 'AVG', 'OBP', 'NSB'], keys: ['r', 'hr', 'rbi', 'tb', 'avg', 'obp', 'nsb'], isB: true, color: '#3b82f6' },
+                { id: 'pitchingRadarChart', labels: ['W','ERA','WHIP', 'K/BB', 'K/9','QS','SV/H'], keys: ['w', 'era', 'whip', 'k_9', 'qs', 'k_bb', 'sv_h'], isB: false, color: '#10b981' }
             ];
             configs.forEach(c => {
                 const ctx = document.getElementById(c.id).getContext('2d');
