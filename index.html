@@ -119,7 +119,8 @@
                     </div>
                 </div>
                 <div class="w-full md:w-1/3 flex justify-center">
-                    <img id="hero-gif" src="" alt="Highlight" class="rounded-2xl shadow-2xl border-4 border-slate-800 w-full max-w-[280px] aspect-square object-cover">
+                    <div id="hero-media-container" class="rounded-2xl shadow-2xl border-4 border-slate-800 w-full max-w-[280px] aspect-square overflow-hidden">
+                    </div>
                 </div>
             </div>
 
@@ -563,7 +564,14 @@
             if (!index) return;
             document.getElementById('hero-header').textContent = index.highlight?.header || "League Update";
             document.getElementById('hero-sub').textContent = index.highlight?.header2 || "";
-            document.getElementById('hero-gif').src = index.highlight?.gif_url || "";
+            const mediaContainer = document.getElementById('hero-media-container');
+            const gifUrl = index.highlight?.gif_url || "";
+            
+            if (gifUrl.includes('giphy.com/embed')) {
+                mediaContainer.innerHTML = `<iframe src="${gifUrl}" width="100%" height="100%" frameBorder="0" class="giphy-embed" allowFullScreen></iframe>`;
+            } else {
+                mediaContainer.innerHTML = `<img src="${gifUrl}" class="w-full h-full object-cover">`;
+            }
             document.getElementById('hero-point1').textContent = index.highlight?.point1 || "";
             document.getElementById('hero-point2').textContent = index.highlight?.point2 || "";
             document.getElementById('hero-point3').textContent = index.highlight?.point3 || "";
